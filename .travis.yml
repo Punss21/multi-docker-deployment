@@ -8,10 +8,18 @@ before_install:
   - docker build -t punss21/react-test -f ./client/Dockerfile.dev ./client
 
 script:
-  - docker run punss21/react-test npm test -- --coverage
+  - docker -e CI=true run punss21/react-test npm test -- --coverage
 
 after_success:
   - docker build -t punss21/multi-client ./client
   - docker build -t punss21/multi-server ./server
   - docker build -t punss21/multi-worker ./worker
   - docker build -t punss21/multi-nginx ./nginx
+
+  # Login to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take all the images and push it to docker hub
+  - docker push  punss21/multi-client
+  - docker push  punss21/multi-server
+  - docker push  punss21/multi-worker
+  - docker push  punss21/multi-nginx
